@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+app.use(express.json());
+
 let persons = [
   {
     id: 1,
@@ -56,6 +58,19 @@ app.delete("/api/persons/:id", (request, response) => {
   persons = persons.filter((person) => person.id !== id);
 
   response.status(204).end();
+});
+
+app.post("/api/persons", (request, response) => {
+  const { name, number } = request.body;
+
+  if (!name || !number) {
+    const missing = !name ? "Name" : "Number";
+    return response.status(400).json({ error: `'${missing}' is missing` });
+  }
+
+  const newPerson = { id: Math.random(), name, number };
+  console.log(newPerson);
+  response.json(persons.push(newPerson));
 });
 
 const PORT = 3001;
