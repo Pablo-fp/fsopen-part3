@@ -8,7 +8,7 @@ const Filter = ({ searchName, handleSearchChange }) => {
         type="text"
         value={searchName}
         onChange={handleSearchChange}
-        placeholder="Search countries"
+        placeholder="Search names"
       />
     </div>
   );
