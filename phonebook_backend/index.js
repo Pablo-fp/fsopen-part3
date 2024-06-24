@@ -1,7 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const app = express();
+const Person = require("./models/person");
 
 // custom token for morgan
 morgan.token("postData", function (req) {
@@ -44,12 +46,16 @@ let persons = [
   },
 ];
 
+///Mongo definition
+
 app.get("/", (request, response) => {
   response.send("<h1>Hello World!</h1>");
 });
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
