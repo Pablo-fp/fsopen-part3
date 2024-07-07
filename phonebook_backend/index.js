@@ -59,15 +59,9 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
-  if (person) {
-    response.status(200).json(person);
-  } else {
-    response.status(404).json({
-      error: `No person with this id: '${request.params.id}'`,
-    });
-  }
+  Person.findById(request.params.id).then((person) => {
+    response.json(person);
+  });
 });
 
 app.get("/info", (request, response) => {
@@ -78,23 +72,28 @@ app.get("/info", (request, response) => {
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
-
-  response.status(204).end();
+  Person.findById(request.params.id).then((person) => {
+    response.json(person);
+  });
 });
 
 app.post("/api/persons", (request, response) => {
-  const { name, number } = request.body;
+  const body = request.body;
 
-  if (!name || !number) {
-    const missing = !name ? "Name" : "Number";
+  if (!body.name || !body.number) {
+    const missing = !body.name ? "Name" : "Number";
     return response.status(400).json({ error: `'${missing}' is missing` });
   }
 
-  const newPerson = { id: Math.random(), name, number };
+  const newPerson = new Person({
+    name: body.name,
+    number: body.number,
+  });
   console.log(newPerson);
-  response.json(persons.push(newPerson));
+
+  newPerson.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
 });
 
 const PORT = process.env.PORT || 3001;
