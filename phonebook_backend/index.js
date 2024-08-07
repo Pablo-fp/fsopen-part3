@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const bodyParser = require("body-parser");
+
 const app = express();
 const Person = require("./models/person");
 
@@ -22,6 +24,9 @@ app.use(
 );
 app.use(cors());
 app.use(express.static("dist"));
+app.use(requestLogger);
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
 
 let persons = [
   {
@@ -62,25 +67,35 @@ app.get("/api/persons/:id", (request, response, next) => {
   Person.findById(request.params.id)
     .then((person) => {
       if (person) {
-        response.json(person);
+        response.status(200).json(person);
       } else {
-        response.status(404).end();
+        response.status(404).json({
+          error: `There is no person with this id: ${request.params.id}`,
+        });
       }
     })
     .catch((error) => next(error));
 });
 
-app.get("/info", (request, response) => {
-  response.send(`
-  <p>Phonebook has info for ${persons.length} people</p>
-  <p>${new Date()}</p>
-  `);
+app.get("/info", (request, response, next) => {
+  Person.find({})
+    .then((persons) => {
+      response.send(`
+      <p>Phonebook has info for ${persons.length} people</p>
+      <p>${new Date()}</p>
+      `);
+    })
+    .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (request, response) => {
   Person.findByIdAndDelete(request.params.id)
     .then((result) => {
-      response.status(204).end();
+      if (!result) {
+        response.status(400).send(request.params.id + " was not found");
+      } else {
+        response.status(204).send(`${result.name} was deleted.`);
+      }
     })
     .catch((error) => next(error));
 });
@@ -92,16 +107,48 @@ app.post("/api/persons", (request, response) => {
     const missing = !body.name ? "Name" : "Number";
     return response.status(400).json({ error: `'${missing}' is missing` });
   }
+  Person.findOne({ name: body.name })
+    .then((person) => {
+      if (person) {
+        response
+          .status(400)
+          .json({ error: `${person.name} name must be unique` });
+      } else {
+        const person = new Person({
+          name: body.name,
+          number: body.number,
+        });
+        person
+          .save()
+          .then((savedPerson) => response.json(savedPerson))
+          .catch((error) => next(error));
+      }
+    })
+    .catch((error) => next(error));
+});
 
-  const newPerson = new Person({
-    name: body.name,
-    number: body.number,
-  });
-  console.log(newPerson);
+app.put("/api/persons/:id", async (request, response, next) => {
+  const id = request.params.id;
+  const { name, number } = request.body;
 
-  newPerson.save().then((savedPerson) => {
-    response.json(savedPerson);
-  });
+  const person = { name, number };
+
+  try {
+    const updatedPerson = await Person.findByIdAndUpdate(id, person, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedPerson) {
+      return response.status(400).json({
+        error: `No person with this id: '${id}'`,
+      });
+    }
+
+    response.status(200).json(updatedPerson);
+  } catch (error) {
+    next(error);
+  }
 });
 
 const PORT = process.env.PORT || 3001;
