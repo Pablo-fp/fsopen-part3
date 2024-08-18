@@ -9,6 +9,7 @@ const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
+  const [numberFormat, setNumberFormat] = useState(false);
   const [searchName, setSearchName] = useState("");
   const [message, setMessage] = useState({ type: null, content: null });
 
@@ -38,7 +39,7 @@ const App = () => {
           );
           setMessage({
             type: "success",
-            content: `Updated ${newPerson.name}´s number`,
+            content: `Updated ${newPerson.name}´s number`
           });
           setNewName("");
           setNewNumber("");
@@ -47,21 +48,21 @@ const App = () => {
         .catch((error) => {
           setMessage({
             type: "error",
-            content: `${updatedPerson.name} has already been removed from server`,
+            content: error.response.data.error || "an error occured..."
           });
           clearNotification();
         });
     } else {
       const personObject = {
         name: newName,
-        number: newNumber,
+        number: newNumber
       };
 
       personService.create(personObject).then((newPerson) => {
         setPersons([...persons, newPerson]);
         setMessage({
           type: "success",
-          content: `Added ${newPerson.name} to the list`,
+          content: `Added ${newPerson.name} to the list`
         });
         setNewName("");
         setNewNumber("");
@@ -80,6 +81,7 @@ const App = () => {
 
   const handleNumberChange = (event) => {
     setNewNumber(event.target.value);
+    setNumberFormat(/0[0-9]{1,2}-[0-9]{7,}/.test(event.target.value));
   };
 
   const handleSearchChange = (event) => {
@@ -101,14 +103,14 @@ const App = () => {
           );
           setMessage({
             type: "delete",
-            content: `${deletedPerson.name} has been deleted from the list`,
+            content: `${deletedPerson.name} has been deleted from the list`
           });
           clearNotification();
         })
         .catch((error) => {
           setMessage({
             type: "error",
-            content: `${deletedPerson.name} has already been removed from server`,
+            content: `${deletedPerson.name} has already been removed from server`
           });
           clearNotification();
         });
@@ -133,6 +135,7 @@ const App = () => {
         handleNameChange={handleNameChange}
         newNumber={newNumber}
         handleNumberChange={handleNumberChange}
+        numberFormat={numberFormat}
       />
       <h3>Numbers</h3>
       <Persons

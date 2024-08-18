@@ -15,8 +15,12 @@ const url = `mongodb+srv://fullstack:${password}@cluster0.opeqixu.mongodb.net/?r
 mongoose.set("strictQuery", false);
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    minLength: 3,
+    required: true
+  },
+  number: String
 });
 
 const Person = mongoose.model("Person", personSchema);
@@ -28,11 +32,11 @@ mongoose
     if (name && number) {
       const person = new Person({
         name,
-        number,
+        number
       });
       return person.save().then((person) => {
         console.log(
-          `added ${person.name} number ${person.number} to phonebook`
+          `Added ${person.name} number ${person.number} to phonebook`
         );
         mongoose.connection.close();
       });

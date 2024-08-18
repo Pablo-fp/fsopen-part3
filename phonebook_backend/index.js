@@ -32,23 +32,23 @@ let persons = [
   {
     id: 1,
     name: "Arto Hellas",
-    number: "040-123456",
+    number: "040-123456"
   },
   {
     id: 2,
     name: "Ada Lovelace",
-    number: "39-44-5323523",
+    number: "39-44-5323523"
   },
   {
     id: 3,
     name: "Dan Abramov",
-    number: "12-43-234345",
+    number: "12-43-234345"
   },
   {
     id: 4,
     name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
+    number: "39-23-6423122"
+  }
 ];
 
 ///Mongo definition
@@ -70,7 +70,7 @@ app.get("/api/persons/:id", (request, response, next) => {
         response.status(200).json(person);
       } else {
         response.status(404).json({
-          error: `There is no person with this id: ${request.params.id}`,
+          error: `There is no person with this id: ${request.params.id}`
         });
       }
     })
@@ -116,7 +116,7 @@ app.post("/api/persons", (request, response) => {
       } else {
         const person = new Person({
           name: body.name,
-          number: body.number,
+          number: body.number
         });
         person
           .save()
@@ -131,17 +131,20 @@ app.put("/api/persons/:id", async (request, response, next) => {
   const id = request.params.id;
   const { name, number } = request.body;
 
-  const person = { name, number };
-
   try {
-    const updatedPerson = await Person.findByIdAndUpdate(id, person, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedPerson = await Person.findByIdAndUpdate(
+      id,
+      { name, number },
+      {
+        new: true,
+        runValidators: true,
+        context: "query"
+      }
+    );
 
     if (!updatedPerson) {
       return response.status(400).json({
-        error: `No person with this id: '${id}'`,
+        error: `No person with this id: '${id}'`
       });
     }
 
