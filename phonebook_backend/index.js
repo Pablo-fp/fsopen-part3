@@ -24,7 +24,6 @@ app.use(
 );
 app.use(cors());
 app.use(express.static("dist"));
-app.use(requestLogger);
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
 
